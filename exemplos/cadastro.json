@@ -1,0 +1,39 @@
+{
+  "perfil": {
+    "nome": "",
+    "cidade": "",
+    "telefone": "",
+    "email": "",
+    "links": {},
+    "afirmacoes": {},
+    "pendentes": {},
+    "cnpj": null,
+    "disponibilidade": null
+  },
+  "preferencias": {
+    "cidades_presenciais": [
+      "Cidade Exemplo"
+    ],
+    "clt_acima_de": 4000,
+    "max_dias_hibrido": 3,
+    "prioridade_stack": [
+      "Java/Spring",
+      "Python"
+    ],
+    "empresas_preferidas": [],
+    "cargos_adicionais": []
+  },
+  "entrega": {
+    "planilha_id": "",
+    "email": "",
+    "drive_pasta_id": "",
+    "gmail_link_id": "",
+    "curriculo_url": "",
+    "horario": "07:00",
+    "sheet_id": 0,
+    "sheet_id_graduacao": 1,
+    "sheet_id_ingles": 2,
+    "sheet_id_historico": 4,
+    "autorizado_email_diario": false
+  }
+}

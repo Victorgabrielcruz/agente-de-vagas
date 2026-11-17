@@ -1,0 +1,11 @@
+{
+  "evidencia": "EXEMPLO FICTÍCIO: substituir pela evidência observada",
+  "novas": 1,
+  "candidatas": [
+    {
+      "empresa": "Empresa Exemplo",
+      "titulo": "Desenvolvedor Júnior",
+      "url": "https://example.org/vaga-ficticia"
+    }
+  ]
+}

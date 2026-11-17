@@ -1,0 +1,190 @@
+{
+  "fontes": [
+    {
+      "nome": "Carreiras oficiais",
+      "url": null,
+      "descoberta": "Buscador e vínculo empresa/ATS verificado",
+      "envio": "manual",
+      "status": "revalidar_regras"
+    },
+    {
+      "nome": "LinkedIn",
+      "url": "https://www.linkedin.com/jobs/",
+      "envio": "manual",
+      "status": "configurar_na_sua_instalacao",
+      "busca_interna": {
+        "habilitada": false,
+        "todas_chaves_obrigatorias": true,
+        "identificador_cache": "LinkedIn interno",
+        "janelas": [
+          "24h",
+          "7d"
+        ]
+      }
+    },
+    {
+      "nome": "Gupy",
+      "url": "https://portal.gupy.io/",
+      "envio": "manual",
+      "status": "configurar_na_sua_instalacao",
+      "busca_interna": {
+        "habilitada": false,
+        "todas_chaves_obrigatorias": true,
+        "identificador_cache": "Gupy interno",
+        "janelas": [
+          "24h",
+          "7d"
+        ]
+      }
+    }
+  ],
+  "chaves_individuais": [
+    {
+      "termo": "Engenheiro de Software",
+      "grupo": "engenharia_software"
+    },
+    {
+      "termo": "Software Engineer",
+      "grupo": "engenharia_software"
+    },
+    {
+      "termo": "Desenvolvedor de Software",
+      "grupo": "engenharia_software"
+    },
+    {
+      "termo": "Software",
+      "grupo": "engenharia_software"
+    },
+    {
+      "termo": "Desenvolvedor Java",
+      "grupo": "java_spring"
+    },
+    {
+      "termo": "Java",
+      "grupo": "java_spring"
+    },
+    {
+      "termo": "Spring",
+      "grupo": "java_spring"
+    },
+    {
+      "termo": "Spring Boot",
+      "grupo": "java_spring"
+    },
+    {
+      "termo": "Desenvolvedor Backend",
+      "grupo": "java_spring"
+    },
+    {
+      "termo": "Desenvolvedor Full Stack",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "Fullstack",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "Node.js",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "React",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "Frontend",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "React Native",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "Flutter",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "Desenvolvedor Node.js",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "Desenvolvedor React Native",
+      "grupo": "fullstack_mobile"
+    },
+    {
+      "termo": "Desenvolvedor Python",
+      "grupo": "python_qa_automacao"
+    },
+    {
+      "termo": "Python",
+      "grupo": "python_qa_automacao"
+    },
+    {
+      "termo": "QA",
+      "grupo": "python_qa_automacao"
+    },
+    {
+      "termo": "Analista de Testes",
+      "grupo": "python_qa_automacao"
+    },
+    {
+      "termo": "Analista de Automação",
+      "grupo": "python_qa_automacao"
+    },
+    {
+      "termo": "Automação",
+      "grupo": "python_qa_automacao"
+    },
+    {
+      "termo": "Analista de Sistemas I",
+      "grupo": "cargos_equivalentes"
+    },
+    {
+      "termo": "Analista de Desenvolvimento I",
+      "grupo": "cargos_equivalentes"
+    },
+    {
+      "termo": "Programador I",
+      "grupo": "cargos_equivalentes"
+    },
+    {
+      "termo": "Software Engineer I",
+      "grupo": "cargos_equivalentes"
+    },
+    {
+      "termo": "Software Developer I",
+      "grupo": "cargos_equivalentes"
+    },
+    {
+      "termo": "Associate Software Engineer",
+      "grupo": "cargos_equivalentes"
+    },
+    {
+      "termo": "Entry Level Developer",
+      "grupo": "cargos_equivalentes"
+    },
+    {
+      "termo": "Analista de Sistemas",
+      "grupo": "sem_nivel"
+    },
+    {
+      "termo": "C#",
+      "grupo": "sem_nivel"
+    },
+    {
+      "termo": ".NET",
+      "grupo": "sem_nivel"
+    }
+  ],
+  "modificadores_nivel": [
+    "Júnior",
+    "Junior",
+    "Jr",
+    "Trainee",
+    "Associate",
+    "Entry Level",
+    "I"
+  ],
+  "pesquisar_cada_empresa": true,
+  "regra_modificadores": "Pesquisar também cada modificador em consulta própria software + nível; títulos base sem nível continuam obrigatórios. Não há produto cartesiano de todos os cargos por todos os níveis."
+}

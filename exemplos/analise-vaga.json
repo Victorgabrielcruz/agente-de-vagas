@@ -1,0 +1,10 @@
+{
+  "empresa": "Empresa Exemplo",
+  "titulo": "Desenvolvedor Júnior",
+  "url": "https://example.org/vaga-ficticia",
+  "evidencia_analise": "EXEMPLO FICTÍCIO: substituir pela análise real",
+  "pendencias": [
+    "Confirmar condições"
+  ],
+  "incompatibilidades": []
+}

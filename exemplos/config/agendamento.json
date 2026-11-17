@@ -1,0 +1,8 @@
+{
+  "id": null,
+  "status": "NAO_CONFIGURADO",
+  "tipo": "heartbeat",
+  "horario": "07:00",
+  "timezone": "America/Sao_Paulo",
+  "recuperacao_garantida": false
+}

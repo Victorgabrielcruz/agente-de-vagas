@@ -1,0 +1,42 @@
+{
+  "formato": "JSON válido como YAML 1.2",
+  "timezone": "America/Sao_Paulo",
+  "pausado": true,
+  "configuracao_inicial_pendente": true,
+  "mercado": "Brasil",
+  "cidades_presenciais": [
+    "Cidade Exemplo"
+  ],
+  "max_dias_hibrido": 3,
+  "horas_semanais": null,
+  "clt_acima_de": 4000,
+  "piso_pj": null,
+  "pretensao_numerica": null,
+  "salario_nao_divulgado": true,
+  "empresas_preferidas": [],
+  "prioridade_stack": [
+    "Java/Spring",
+    "Python",
+    "Node.js"
+  ],
+  "cargos_adicionais": [],
+  "pesos": {
+    "tecnica": 35,
+    "junior": 25,
+    "modalidade": 20,
+    "empresa": 10,
+    "atualidade": 10
+  },
+  "limiar_auto": 80,
+  "limiar_avaliacao": 65,
+  "limite_segundos_executor_legado": 1800,
+  "curadoria_limite_segundos": null,
+  "max_consultas_por_ciclo": null,
+  "curadoria_analisar_todas_coletadas": true,
+  "orcamento_adicional_brl": 0,
+  "publicacao_max_dias": 7,
+  "prioridade_publicacao_horas": 24,
+  "publicacao_original_obrigatoria": true,
+  "incluir_data_desconhecida_nas_novidades": false,
+  "preservar_historico_antigo": true
+}

@@ -1,0 +1,12 @@
+{
+  "intervalos_minutos": [
+    5,
+    10,
+    20,
+    30,
+    60
+  ],
+  "validade_horas": 24,
+  "limpeza_automatica": true,
+  "retencao_dias": 7
+}

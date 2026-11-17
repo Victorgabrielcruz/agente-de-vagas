@@ -1,0 +1,34 @@
+# Somente a estrutura compartilhável é candidata ao Git.
+/*
+!/.gitignore
+!/README.md
+!/AGENTS.md
+!/RUNBOOK.md
+!/PUBLICACAO.json
+!/requirements.txt
+!/requirements-pdf.txt
+!/src/
+!/tests/
+!/exemplos/
+!/agents/
+!/scripts/
+/scripts/*
+!/scripts/vagas.cmd
+!/scripts/configurar.py
+!/scripts/publicacao.py
+!/scripts/renderizar.py
+!/documentacao/
+/documentacao/*
+!/documentacao/INSTALACAO.md
+!/documentacao/PUBLICACAO.md
+!/documentacao/RETOMADA_BUSCA.md
+!/documentacao/AUTOMACAO_MODELO.md
+# Exemplos são fictícios. Configuração, currículo, estado e histórico reais ficam privados.
+**/__pycache__/
+*.pyc
+*.sqlite
+*.sqlite-*
+*.db
+.env*
+*.log
+.venv/

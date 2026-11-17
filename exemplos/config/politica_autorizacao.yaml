@@ -1,0 +1,9 @@
+{
+  "versao": 1,
+  "origem": "Instalação independente; nenhuma autorização de outra pessoa é herdada",
+  "pesquisa_e_preparacao": true,
+  "modo_atual": "curadoria_manual",
+  "envio_producao_global": false,
+  "candidaturas_autorizadas": false,
+  "autorizacao_nao_supera_regras_portal": true
+}

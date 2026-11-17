@@ -1,0 +1,4 @@
+# Opcional: geração, extração e renderização de currículos.
+pypdf
+reportlab
+pypdfium2
