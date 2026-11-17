@@ -110,3 +110,20 @@ Para inspecionar ou executar separadamente:
 ```
 
 Simulação não exclui, compacta nem cria banco. Não apagar o arquivo SQLite inteiro para liberar espaço: isso removeria o ponto de retomada. Pesquisas pendentes antigas exigem resolução/revalidação explícita, e não descarte automático por idade.
+
+
+## Limites de uso da assinatura (5 horas e semanal)
+
+Antes da pesquisa e entre lotes, consultar get_usage_limits quando disponível. Usar as janelas aplicáveis ao modelo/conta em rateLimitsByLimitId, preferencialmente, e respeitar ordinaryUsageAllowed. Dados ausentes não significam saldo zero nem liberação. Não consumir resets, créditos ou trocar conta/modelo para contornar o limite; orçamento adicional zero.
+
+Quando houver esgotamento observado, salvar o último resultado real e registrar:
+
+```powershell
+python -m src.cli cache-busca pausar --motivo limite_5h --retomada "AAAA-MM-DDTHH:MM:SS-03:00" --evidencia "limite e prazo informados pela ferramenta"
+```
+
+Para o semanal, usar limite_semanal. --retomada é o reset real, convertido de resetsAt; não somar cinco horas ou sete dias ao momento da falha. Se ambos estiverem esgotados, usar o maior prazo aplicável. Sem prazo confiável, omitir --retomada: fica bloqueada até confirmação real de liberação e desbloquear com evidência no motivo. Pausas repetidas não encurtam o prazo anterior. iniciar também respeita o bloqueio, inclusive após mudança de dia; não invalidar a sessão para escapar do limite.
+
+Restaurar a mesma automação à cadência diária durante essa espera, evitando despertares de cinco minutos; não criar outra. O primeiro despertar disponível após o reset confere novamente os limites e retoma as pendências válidas. Se mudou o dia ou expirou a validade, revalidar plano/evidências e preservar a sessão antiga; não exportar anúncios antigos como novidades.
+
+O comando de pausa enfileira o alerta autorizado; tentar processá-lo apenas se a execução ainda estiver disponível. Um corte abrupto pode impedir pausa, atualização da automação e Gmail. Nesse caso, somente os checkpoints já persistidos estão garantidos: no próximo despertar disponível consultar limites e fila de alertas, registrar o impedimento observado e reconciliar pendências/envios antes de retomar. Não afirmar que o Python consulta a quota ou que uma automação executará sem saldo. Prazo conhecido não garante execução naquele instante.

@@ -25,3 +25,22 @@ Exportar somente após consultas acessíveis e análises completas, cobertura do
 Sincronizar marcações atuais da planilha por URLs/cabeçalhos, usando IDs configurados. Preservar histórico, flags, congelamentos, anotações e outras abas. Gerar e conferir as três listas. Publicar e verificar somente as áreas gerenciadas. Relatório por e-mail apenas com autorização explícita para o destinatário desta instalação; registrar confirmação real. Entrega parcial ou envio incerto exige reconciliação, sem repetir às cegas.
 
 Após confirmação de entrega, concluir o cache e restaurar a cadência diária no horário configurado. Restaurar também quando não houver pendências ou houver bloqueio não transitório. A limpeza de cache já é acionada pelo código em iniciar/concluir; não criar tarefa adicional. Informar resultados ou falhas relevantes conforme as preferências do usuário e manter STATUS.md local atualizado.
+
+Alertas por Gmail: somente se a pessoa desta instalação autorizar explicitamente destino e conexão e habilitar alertas_impedimentos. Conferir alertas status em cada execução e após impedimentos; preparar, enviar pelo conector Gmail e confirmar com recibo real ID/SENT conforme RUNBOOK. Reconciliar envio incerto antes de repetir. Exemplos não concedem autorização. Não incluir logs brutos/segredos, criar alertas recursivos ou usar outro destinatário/canal para contornar recusa.
+
+
+## Limites de uso da assinatura (5 horas e semanal)
+
+Antes da pesquisa e entre lotes, consultar get_usage_limits quando disponível. Usar as janelas aplicáveis ao modelo/conta em rateLimitsByLimitId, preferencialmente, e respeitar ordinaryUsageAllowed. Dados ausentes não significam saldo zero nem liberação. Não consumir resets, créditos ou trocar conta/modelo para contornar o limite; orçamento adicional zero.
+
+Quando houver esgotamento observado, salvar o último resultado real e registrar:
+
+```powershell
+python -m src.cli cache-busca pausar --motivo limite_5h --retomada "AAAA-MM-DDTHH:MM:SS-03:00" --evidencia "limite e prazo informados pela ferramenta"
+```
+
+Para o semanal, usar limite_semanal. --retomada é o reset real, convertido de resetsAt; não somar cinco horas ou sete dias ao momento da falha. Se ambos estiverem esgotados, usar o maior prazo aplicável. Sem prazo confiável, omitir --retomada: fica bloqueada até confirmação real de liberação e desbloquear com evidência no motivo. Pausas repetidas não encurtam o prazo anterior. iniciar também respeita o bloqueio, inclusive após mudança de dia; não invalidar a sessão para escapar do limite.
+
+Restaurar a mesma automação à cadência diária durante essa espera, evitando despertares de cinco minutos; não criar outra. O primeiro despertar disponível após o reset confere novamente os limites e retoma as pendências válidas. Se mudou o dia ou expirou a validade, revalidar plano/evidências e preservar a sessão antiga; não exportar anúncios antigos como novidades.
+
+O comando de pausa enfileira o alerta autorizado; tentar processá-lo apenas se a execução ainda estiver disponível. Um corte abrupto pode impedir pausa, atualização da automação e Gmail. Nesse caso, somente os checkpoints já persistidos estão garantidos: no próximo despertar disponível consultar limites e fila de alertas, registrar o impedimento observado e reconciliar pendências/envios antes de retomar. Não afirmar que o Python consulta a quota ou que uma automação executará sem saldo. Prazo conhecido não garante execução naquele instante.

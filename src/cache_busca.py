@@ -12,6 +12,12 @@ from .verificacao import execution_time
 DEFAULTS = {'intervalos_minutos': [5, 10, 20, 30, 60], 'validade_horas': 24,
             'limpeza_automatica': True, 'retencao_dias': 7}
 TRANSIENT = {'timeout', 'conexao', 'limite_temporario', 'interrupcao'}
+QUOTAS = {'limite_5h', 'limite_semanal'}
+
+
+def quota_waiting(state, stamp):
+    return bool(state and state.get('motivo') in QUOTAS and
+                (not state.get('proxima_tentativa_em') or stamp < state['proxima_tentativa_em']))
 
 
 def config(root):
@@ -275,6 +281,8 @@ def start(root, plan, at=None, nova_rodada=False):
     planned.update(mandatory)
     with transaction(root) as db:
         sid, state = latest(db)
+        if quota_waiting(state, stamp):
+            raise ValueError('Limite da assinatura: aguardar prazo informado ou confirmação real de liberação')
         if state and state['estado'] != 'concluida' and not freshness(root, state, stamp):
             if state['nova_rodada'] != nova_rodada:
                 raise ValueError('Não trocar a autorização de uma pesquisa em andamento')
@@ -301,13 +309,14 @@ def start(root, plan, at=None, nova_rodada=False):
     return result
 
 
-def mutate(root, action, at=None, task_id=None, result=None, url=None, reason=None):
+def mutate(root, action, at=None, task_id=None, result=None, url=None, reason=None,
+           retry_at=None, evidence=None):
     stamp = execution_time(at)
     with transaction(root) as db:
         sid, state = latest(db)
         if state is None:
             raise ValueError('Nenhuma pesquisa em cache')
-        if freshness(root, state, stamp):
+        if freshness(root, state, stamp) and not (action == 'desbloquear' and state.get('motivo') in QUOTAS):
             raise ValueError('Cache requer novo plano e revalidação: '+freshness(root, state, stamp))
         if state['estado'] == 'concluida':
             raise ValueError('Pesquisa já concluída; não reabrir automaticamente')
@@ -331,18 +340,41 @@ def mutate(root, action, at=None, task_id=None, result=None, url=None, reason=No
         elif action == 'pausar':
             if not isinstance(reason, str) or not reason.strip():
                 raise ValueError('Informar motivo da interrupção')
-            if state['estado'] == 'aguardando_retentativa':
-                return view(root, state, stamp)
-            state['motivo'] = reason
-            state['estado'] = 'aguardando_retentativa' if reason in TRANSIENT else 'bloqueada'
-            if reason in TRANSIENT:
-                state['falhas_consecutivas'] += 1
-                delays = config(root)['intervalos_minutos']
-                minutes = delays[min(state['falhas_consecutivas']-1, len(delays)-1)]
-                state['proxima_tentativa_em'] = (datetime.fromisoformat(stamp)+timedelta(minutes=minutes)).isoformat(timespec='seconds')
+            if reason in QUOTAS:
+                if not isinstance(evidence, str) or not evidence.strip():
+                    raise ValueError('Limite da assinatura exige evidência observada')
+                deadline = None
+                if retry_at:
+                    parsed = datetime.fromisoformat(retry_at.replace('Z', '+00:00'))
+                    if parsed.tzinfo is None:
+                        raise ValueError('Prazo de recuperação exige fuso horário')
+                    deadline = execution_time(retry_at)
+                    if deadline <= stamp:
+                        raise ValueError('Prazo de recuperação deve ser futuro')
+                if quota_waiting(state, stamp):
+                    previous = state.get('proxima_tentativa_em')
+                    if previous is None or (deadline and previous > deadline):
+                        deadline = previous
+                state.update(motivo=reason, evidencia_limite=evidence,
+                             estado='aguardando_retentativa' if deadline else 'bloqueada',
+                             proxima_tentativa_em=deadline)
+            elif quota_waiting(state, stamp):
+                raise ValueError('Limite da assinatura ainda impede a retomada')
             else:
-                state['proxima_tentativa_em'] = None
+                if state['estado'] == 'aguardando_retentativa':
+                    return view(root, state, stamp)
+                state['motivo'] = reason
+                state['estado'] = 'aguardando_retentativa' if reason in TRANSIENT else 'bloqueada'
+                if reason in TRANSIENT:
+                    state['falhas_consecutivas'] += 1
+                    delays = config(root)['intervalos_minutos']
+                    minutes = delays[min(state['falhas_consecutivas']-1, len(delays)-1)]
+                    state['proxima_tentativa_em'] = (datetime.fromisoformat(stamp)+timedelta(minutes=minutes)).isoformat(timespec='seconds')
+                else:
+                    state['proxima_tentativa_em'] = None
         elif action == 'desbloquear':
+            if quota_waiting(state, stamp) and state.get('proxima_tentativa_em'):
+                raise ValueError('Aguardar o prazo do limite da assinatura')
             if state['estado'] != 'bloqueada' or not reason:
                 raise ValueError('Desbloqueio exige causa resolvida e motivo explícito')
             state.update(estado='pesquisando', proxima_tentativa_em=None, motivo=reason)
@@ -428,6 +460,14 @@ def mutate(root, action, at=None, task_id=None, result=None, url=None, reason=No
         write(Path(root)/'entrada/curadoria.json', [item['analise'] for item in state['candidatas'].values()])
         write(Path(root)/'entrada/cobertura.json', audit(state))
     result = view(root, state, stamp)
+    if action in ('isolar-fonte','pausar'):
+        from .alertas import registrar_sem_interromper
+        origin = state['tarefas'][task_id]['plano']['fonte'] if action=='isolar-fonte' else 'execução da busca'
+        result['alerta_impedimento'] = registrar_sem_interromper(root,
+            codigo='fonte_indisponivel' if action=='isolar-fonte' else 'busca_'+reason,
+            origem=origin,detalhe='Uma fonte foi isolada; as demais continuam.' if action=='isolar-fonte' else 'A busca foi interrompida: '+reason,
+            acao='Continuar fontes independentes; verificar acesso à fonte.' if action=='isolar-fonte' else 'Respeitar o checkpoint e o prazo de retomada; resolver a causa quando não transitória.',
+            retomada=state.get('proxima_tentativa_em'),at=stamp)
     if action == 'concluir':
         result['limpeza'] = auto_cleanup(root, stamp)
     return result

@@ -5,5 +5,12 @@
   "modo_atual": "curadoria_manual",
   "envio_producao_global": false,
   "candidaturas_autorizadas": false,
-  "autorizacao_nao_supera_regras_portal": true
+  "autorizacao_nao_supera_regras_portal": true,
+  "alertas_impedimentos": {
+    "autorizado": false,
+    "destinatario": "",
+    "gmail_link_id": "",
+    "texto_usuario": "",
+    "autorizado_em": null
+  }
 }

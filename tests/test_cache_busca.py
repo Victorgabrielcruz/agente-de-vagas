@@ -39,6 +39,58 @@ class CacheTests(unittest.TestCase):
     def result(self, jobs=None):
         return {'evidencia': 'Consulta efetivamente realizada na fonte', 'novas': len(jobs or []), 'candidatas': jobs or []}
 
+    def test_quota_waits_until_observed_reset_and_preserves_progress(self):
+        state = self.start([query(), query(text='outra consulta')])
+        task = state['consultas_pendentes'][0]['id']
+        self.change('registrar', task_id=task, result=self.result())
+        deadline = '2026-11-16T15:00:00Z'
+        paused = self.change('pausar', reason='limite_5h', retry_at=deadline,
+                             evidence='Ferramenta informou limite e reset às 12h Brasília')
+        self.assertEqual(paused['proxima_tentativa_em'], '2026-11-16T12:00:00-03:00')
+        self.assertEqual(len(paused['consultas_pendentes']), 1)
+        self.assertEqual(self.change('retomar', at='2026-11-16T11:59:00-03:00')['estado'], 'aguardando_retentativa')
+        with self.assertRaisesRegex(ValueError, 'Limite da assinatura'):
+            self.start()
+        resumed = self.change('retomar', at='2026-11-16T12:00:00-03:00')
+        self.assertEqual(resumed['estado'], 'pesquisando')
+        self.assertEqual(len(resumed['consultas_pendentes']), 1)
+
+    def test_weekly_limit_survives_day_change_and_requires_revalidation(self):
+        self.start()
+        self.change('pausar', reason='limite_semanal',
+                    retry_at='2026-11-23T07:00:00-03:00', evidence='Reset semanal informado')
+        with self.assertRaisesRegex(ValueError, 'Limite da assinatura'):
+            cache.start(self.root, [query()], at='2026-11-17T07:00:00-03:00')
+        with self.assertRaisesRegex(ValueError, 'revalidação'):
+            self.change('retomar', at='2026-11-23T07:00:00-03:00')
+        fresh = cache.start(self.root, [query()], at='2026-11-23T07:00:00-03:00')
+        self.assertEqual(fresh['estado'], 'pesquisando')
+        db = sqlite3.connect(cache.dbpath(self.root))
+        try:
+            self.assertEqual(db.execute('SELECT count(*) FROM checkpoints').fetchone()[0], 2)
+        finally:
+            db.close()
+
+    def test_quota_unknown_reset_blocks_and_rejects_invented_or_shorter_deadlines(self):
+        self.start()
+        for deadline in ('2026-11-16T12:00:00', '2026-11-16T06:00:00-03:00'):
+            with self.assertRaises(ValueError):
+                self.change('pausar', reason='limite_5h', retry_at=deadline, evidence='Limite observado')
+        with self.assertRaisesRegex(ValueError, 'evidência'):
+            self.change('pausar', reason='limite_semanal')
+        self.change('pausar', reason='limite_semanal',
+                    retry_at='2026-11-23T07:00:00-03:00', evidence='Limite semanal observado')
+        kept = self.change('pausar', reason='limite_5h',
+                           retry_at='2026-11-16T12:00:00-03:00', evidence='Ambos esgotados')
+        self.assertEqual(kept['proxima_tentativa_em'], '2026-11-23T07:00:00-03:00')
+        blocked = self.change('pausar', reason='limite_semanal', evidence='Prazo indisponível')
+        self.assertEqual(blocked['estado'], 'bloqueada')
+        with self.assertRaises(ValueError):
+            self.change('retomar')
+        with self.assertRaises(ValueError):
+            self.start()
+        self.assertEqual(self.change('desbloquear', at='2026-11-24T07:00:00-03:00', reason='Liberação confirmada na ferramenta')['estado'], 'pesquisando')
+
     def test_empty_status_does_not_create_database(self):
         self.assertEqual(cache.status(self.root, at=STAMP)['estado'], 'sem_cache')
         self.assertFalse(cache.dbpath(self.root).exists())

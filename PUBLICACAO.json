@@ -53,6 +53,8 @@
     "tests/test_instalacao.py",
     "tests/test_preflight.py",
     "tests/test_publicacao.py",
-    "tests/test_verificacao.py"
+    "tests/test_verificacao.py",
+    "src/alertas.py",
+    "tests/test_alertas.py"
   ]
 }

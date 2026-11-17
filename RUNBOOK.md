@@ -12,6 +12,18 @@ Executar `python -m src.cli verificar` antes da pesquisa. Após ler marcações 
 
 Não candidatar, editar perfis, aceitar compromissos ou contatar recrutadores. Relatório por e-mail somente com autorização explícita desta pessoa para o próprio destinatário configurado. Credenciais permanecem nos conectores, não em arquivos do projeto.
 
+## Alertas operacionais de impedimentos
+
+O envio de alertas exige configuração própria nesta instalação: `alertas_impedimentos.habilitado` em config/entrega_diaria.json e autorização explícita em config/politica_autorizacao.yaml para o mesmo destinatário e conexão Gmail. Exemplos permanecem desativados; ninguém herda autorização. Alterar destino/conexão exige nova autorização específica.
+
+`python -m src.cli alertas status` mostra a fila. `isolar-fonte`, `pausar` e erros tratados no CLI registram incidentes; falhas de navegador/conector precisam de `alertas registrar --codigo CODIGO --origem ETAPA --detalhe "impacto factual" --proximo-passo "ação necessária"`. Login/CAPTCHA, permissão, timeout, conexão, fonte bloqueada, erro de cache, planilha ou envio são impedimentos. Entrega já confirmada e pausa voluntária não geram alertas. Não transportar segredos, cookies, anexos ou logs brutos.
+
+`alertas preparar --id ID` grava enviando e retorna os argumentos do Gmail; o agente chama o conector autorizado, guarda recibo privado e usa `alertas confirmar --id ID --recibo CAMINHO`. Confirmação exige ID e SENT reais. O Python só guarda/prepara; não envia e-mail nem cria agendador. Usar o plugin Gmail disponível na instalação.
+
+Mesma causa/fonte no mesmo dia gera um incidente, mesmo que afete muitas chaves. Nova ocorrência após `alertas resolver --id ID --evidencia "resolução real"` pode gerar novo alerta. Estado enviando/incerto exige reconciliação em Enviados pelo assunto exato e token ALERTA-ID; não repetir automaticamente. `alertas incerto --id ID --evidencia "falha real"` preserva incerteza; `alertas liberar` exige evidência real de ausência de envio. Se Gmail falhar ou recusar, manter pendência e avisar na conversa; não contornar nem criar alertas recursivos.
+
+Enviar os alertas independentemente do relatório diário ou de a busca estar bloqueada, conforme autorização específica. O conteúdo deve informar etapa/fonte, motivo, horário, impacto, próximo passo e prazo conhecido. A retomada da busca continua independente; o alerta não concede permissão para contornar o impedimento. Máquina, aplicativo e conexão indisponíveis podem impedir aviso imediato.
+
 ## 2. Sincronizar marcações
 
 Ler metadados e células das abas existentes com cabeçalhos e URLs. Usar nomes/IDs de `config/entrega_diaria.json`, sem supor que a quarta aba tenha um ID específico. Preservar quaisquer outras abas e colunas de anotações.
@@ -69,3 +81,5 @@ python -m src.controle_vagas confirmar-publicacao entrada/marcacoes-planilha.jso
 Após publicação verificada, enviar somente o relatório autorizado: data, três contagens, total, pendências, cobertura, motivo de encerramento e links da planilha/currículo. Registrar IDs e confirmações em data/entregas. Rascunho não é envio. Confirmar no conector antes de declarar sucesso.
 
 Fechar o cache depois da entrega confirmada e restaurar a cadência diária da mesma automação. A limpeza automática retém sete dias de sessões terminais sem pendências, preserva o checkpoint mais recente e não remove candidaturas/entregas. Atualizar STATUS.md local. Nenhuma promessa de execução com máquina, aplicativo ou conexões indisponíveis.
+
+Limites de 5h/semanal da assinatura têm pausa própria com prazo real, preservação de checkpoints e alerta quando possível. Seguir a seção de limites em documentacao/RETOMADA_BUSCA.md; não tratar como retry de conexão nem presumir que o Codex continuará executando sem quota.

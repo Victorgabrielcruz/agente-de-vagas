@@ -51,5 +51,10 @@
   "prioridade_publicacao_horas": 24,
   "publicacao_original_obrigatoria": true,
   "incluir_data_desconhecida_nas_novidades": false,
-  "preservar_historico_antigo": true
+  "preservar_historico_antigo": true,
+  "alertas_impedimentos": {
+    "habilitado": false,
+    "destinatario": "",
+    "gmail_link_id": ""
+  }
 }

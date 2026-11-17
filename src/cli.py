@@ -10,6 +10,11 @@ def main():
     setup.add_argument('--arquivo', help='Cadastro JSON local preenchido pelo candidato')
     run=sub.add_parser('run'); run.add_argument('--entrada',default='entrada/vagas.json'); run.add_argument('--preparar',action='store_true'); run.add_argument('--forcar',action='store_true')
     sub.add_parser('status'); sub.add_parser('pause'); sub.add_parser('resume')
+    alerts=sub.add_parser('alertas',help='Fila de impedimentos para envio autorizado pelo conector Gmail')
+    alerts.add_argument('acao',choices=['status','registrar','preparar','confirmar','incerto','resolver','liberar'])
+    alerts.add_argument('--id'); alerts.add_argument('--codigo'); alerts.add_argument('--origem')
+    alerts.add_argument('--detalhe'); alerts.add_argument('--proximo-passo'); alerts.add_argument('--evidencia')
+    alerts.add_argument('--recibo'); alerts.add_argument('--retomada')
     planning=sub.add_parser('plano-busca', help='Gera plano, sem pesquisar ou registrar cobertura')
     planning.add_argument('--interno',action='store_true',help='Fila individual obrigatória dos portais configurados')
     planning.add_argument('--salvar',help='Grava o plano JSON e exibe somente as contagens')
@@ -18,6 +23,7 @@ def main():
     cache.add_argument('--simular',action='store_true',help='Inspeciona a limpeza sem apagar ou compactar')
     cache.add_argument('--resumo',action='store_true',help='Mostra contagens e próximas dez tarefas; preserva a fila inteira no banco')
     cache.add_argument('--plano'); cache.add_argument('--tarefa'); cache.add_argument('--resultado')
+    cache.add_argument('--retomada'); cache.add_argument('--evidencia')
     cache.add_argument('--url'); cache.add_argument('--motivo'); cache.add_argument('--nova-rodada',action='store_true')
     checking=sub.add_parser('verificar', help='Verificação local antes da pesquisa, sem alterar dados')
     checking.add_argument('--exigir-sincronizacao',action='store_true')
@@ -27,7 +33,19 @@ def main():
     preflight=sub.add_parser('preflight'); preflight.add_argument('--url',required=True)
     answer=sub.add_parser('responder'); answer.add_argument('--pergunta',required=True); answer.add_argument('--valor',required=True); answer.add_argument('--escopo',required=True); answer.add_argument('--fonte',required=True)
     args=p.parse_args()
-    if args.command=='configurar':
+    if args.command=='alertas':
+        from .alertas import status as alert_status, registrar, atualizar
+        try:
+            if args.acao=='status':
+                result=alert_status(ROOT)
+            elif args.acao=='registrar':
+                result=registrar(ROOT,args.codigo,args.origem,args.detalhe,args.proximo_passo,retomada=args.retomada)
+            else:
+                result=atualizar(ROOT,args.acao,args.id,
+                    receipt=read(ROOT/args.recibo) if args.recibo else None,evidence=args.evidencia)
+        except (OSError,ValueError,sqlite3.Error) as exc:
+            result={'ok':False,'motivo':str(exc)}
+    elif args.command=='configurar':
         from .instalacao import configure
         try:
             result=configure(ROOT,cadastro=ROOT/args.arquivo if args.arquivo else None)
@@ -48,7 +66,7 @@ def main():
             else:
                 result=mutate(ROOT,args.acao,task_id=args.tarefa,
                               result=read(ROOT/args.resultado) if args.resultado else None,
-                              url=args.url,reason=args.motivo)
+                              url=args.url,reason=args.motivo,retry_at=args.retomada,evidence=args.evidencia)
         except (ValueError, OSError, sqlite3.Error) as exc:
             result={'ok':False,'motivo':str(exc)}
     elif args.command=='verificar':
@@ -82,6 +100,15 @@ def main():
         write(path,data); result={'registrado':True,'fila_exige_revalidacao':True}
     else:
         s=Store(ROOT/'data/candidaturas.sqlite'); result=[dict(r) for r in s.db.execute('SELECT id,state,score,updated FROM jobs')]
+    if args.command!='alertas' and isinstance(result,dict) and result.get('ok') is False:
+        from .alertas import registrar_sem_interromper
+        blockers=result.get('bloqueios',[])
+        codes=[i['codigo'] for i in blockers if i.get('codigo') not in ('entrega_ja_confirmada','pausado')]
+        if codes or not blockers:
+            result['alerta_impedimento']=registrar_sem_interromper(ROOT,
+                codigo='verificacao_bloqueada_'+'_'.join(sorted(codes)) if codes else 'falha_comando',origem=args.command,
+                detalhe='Verificação bloqueou a execução: '+', '.join(codes) if codes else 'Um comando não pôde concluir a operação.',
+                acao='Conferir o diagnóstico local e resolver a causa; preservar o progresso.')
     if args.command=='cache-busca' and args.resumo and isinstance(result,dict):
         result=dict(result)
         for key in ('consultas_pendentes','consultas_adiadas','candidatas_pendentes'):
